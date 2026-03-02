@@ -170,7 +170,7 @@ Compare **multiple LLMs fairly** on the same paper.
       "usage": { ... }
     },
     {
-      "model": "gemini:gemini-3.5-flash",
+      "model": "gemini:gemini-3-flash-preview",
       "llm_ms": 1200,
       "latency_ms": 3600
     }
