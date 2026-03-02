@@ -209,7 +209,7 @@ This project explicitly separates **preprocessing cost** from **LLM inference co
 | Provider | Example model spec       |
 | -------- | ------------------------ |
 | OpenAI   | `openai:gpt-4o`     |
-| Gemini   | `gemini:gemini-3.5-flash`  |
+| Gemini   | `gemini:gemini-3-flash-preview`  |
 | DeepSeek | `deepseek:deepseek-chat` |
 
 Adding a new provider requires:
