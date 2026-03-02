@@ -124,7 +124,7 @@ Generate a PaperSketch using **one LLM**.
 
 * `url` – paper PDF URL (required)
 * `lang` – output language (`en`, `zh`)
-* `model` – model spec (e.g. `openai:gpt-4o-mini`)
+* `model` – model spec (e.g. `openai:gpt-4o`)
 * preprocessing controls (`max_pages`, `max_chars`, etc.)
 
 **Response**
@@ -132,7 +132,7 @@ Generate a PaperSketch using **one LLM**.
 ```json
 {
   "paperSketch": "...markdown...",
-  "modelInfo": "openai:gpt-4o-mini",
+  "modelInfo": "openai:gpt-4o",
   "preprocess_ms": 2400,
   "llm_ms": 1800,
   "latency_ms": 4200,
@@ -164,13 +164,13 @@ Compare **multiple LLMs fairly** on the same paper.
   },
   "results": [
     {
-      "model": "openai:gpt-4o-mini",
+      "model": "openai:gpt-4o",
       "llm_ms": 1800,
       "latency_ms": 4200,
       "usage": { ... }
     },
     {
-      "model": "gemini:gemini-1.5-pro",
+      "model": "gemini:gemini-3.5-flash",
       "llm_ms": 1200,
       "latency_ms": 3600
     }
@@ -208,8 +208,8 @@ This project explicitly separates **preprocessing cost** from **LLM inference co
 
 | Provider | Example model spec       |
 | -------- | ------------------------ |
-| OpenAI   | `openai:gpt-4o-mini`     |
-| Gemini   | `gemini:gemini-2.0-flash`  |
+| OpenAI   | `openai:gpt-4o`     |
+| Gemini   | `gemini:gemini-3.5-flash`  |
 | DeepSeek | `deepseek:deepseek-chat` |
 
 Adding a new provider requires:
