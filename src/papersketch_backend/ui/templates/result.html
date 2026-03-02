@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>PaperSketch – Results</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <link
+    href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    rel="stylesheet"
+  >
+  <style>
+    pre {
+      background: #f8f9fa;
+      padding: 1rem;
+      border-radius: .25rem;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+  </style>
+</head>
+<body class="bg-light">
+
+<div class="container py-4">
+
+  <a href="/" class="btn btn-link">&larr; Back</a>
+
+  <h2 class="mb-2">PaperSketch Results</h2>
+
+  <p class="text-muted">
+    Paper URL:
+    <a href="{{ url }}" target="_blank" rel="noopener">{{ url }}</a>
+  </p>
+
+  {% if error %}
+    <div class="alert alert-danger">
+      {{ error }}
+    </div>
+  {% endif %}
+
+  {% if evaluation and evaluation.display_ranking %}
+  <div class="card mb-4">
+    <div class="card-header">
+      Evaluation Ranking ({{ evaluation.display_ranking_source }})
+    </div>
+    <div class="card-body">
+      {% if evaluation.judge and evaluation.judge.error %}
+        <div class="alert alert-warning">
+          Judge evaluation failed: {{ evaluation.judge.error }}
+        </div>
+      {% endif %}
+      <ol class="mb-0">
+        {% for item in evaluation.display_ranking %}
+          <li>
+            <strong>{{ item.model }}</strong>
+            <span class="text-muted">({{ item.overall_score }})</span>
+            {% if item.reason %}
+              <div class="small text-muted">{{ item.reason }}</div>
+            {% endif %}
+          </li>
+        {% endfor %}
+      </ol>
+    </div>
+  </div>
+  {% endif %}
+
+  {% if shared %}
+  <!-- Shared preprocessing info -->
+  <div class="card mb-4">
+    <div class="card-header">
+      Shared Preprocessing
+    </div>
+    <div class="card-body">
+      <ul class="mb-2">
+        <li><strong>Title (guess):</strong> {{ shared.title_guess }}</li>
+        <li><strong>PDF SHA256:</strong> {{ shared.pdf_sha256 }}</li>
+        <li><strong>PDF size:</strong> {{ shared.pdf_size_bytes }} bytes</li>
+        <li><strong>Pages extracted:</strong> {{ shared.pages_extracted }}</li>
+        <li><strong>Characters used:</strong> {{ shared.chars_used }}</li>
+        <li><strong>Figure pages:</strong>
+          {% if shared.figure_pages %}
+            {{ shared.figure_pages | join(", ") }}
+          {% else %}
+            None
+          {% endif %}
+        </li>
+      </ul>
+
+      <p class="mb-1"><strong>Timing breakdown (ms):</strong></p>
+      <ul class="mb-0">
+        {% for k, v in shared.timings_ms.items() %}
+          <li>{{ k }}: {{ v }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- Comparison table -->
+  <div class="card mb-4">
+    <div class="card-header">
+      Model Comparison
+    </div>
+    <div class="card-body p-0">
+      <table class="table table-sm table-bordered mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Model</th>
+            <th>Status</th>
+            <th>LLM ms</th>
+            <th>Preprocess ms</th>
+            <th>Total ms</th>
+            <th>Prompt tokens</th>
+            <th>Output tokens</th>
+            <th>Total tokens</th>
+            <th>Heuristic</th>
+            <th>Reference</th>
+            <th>Judge</th>
+          </tr>
+        </thead>
+        <tbody>
+        {% for r in results %}
+          <tr>
+            <td>{{ r.model }}</td>
+            <td>
+              {% if r.status == "OK" %}
+                <span class="badge bg-success">OK</span>
+              {% else %}
+                <span class="badge bg-danger">ERROR</span>
+              {% endif %}
+            </td>
+            <td>{{ r.llm_ms }}</td>
+            <td>{{ r.preprocess_ms }}</td>
+            <td>{{ r.total_ms }}</td>
+            <td>{{ r.usage.prompt_tokens }}</td>
+            <td>{{ r.usage.output_tokens }}</td>
+            <td>{{ r.usage.total_tokens }}</td>
+            <td>
+              {% if r.evaluation and r.evaluation.heuristic %}
+                {{ r.evaluation.heuristic.overall_score }}
+              {% else %}
+                -
+              {% endif %}
+            </td>
+            <td>
+              {% if r.evaluation and r.evaluation.reference %}
+                {{ r.evaluation.reference.reference_score }}
+              {% else %}
+                -
+              {% endif %}
+            </td>
+            <td>
+              {% if r.evaluation and r.evaluation.judge %}
+                {{ r.evaluation.judge.overall_score }}
+              {% else %}
+                -
+              {% endif %}
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Primary PaperSketch markdown output -->
+  <div class="card mb-4">
+    <div class="card-header">
+      Primary PaperSketch (Markdown Output)
+    </div>
+    <div class="card-body">
+      {% if primary_sketch %}
+        <pre>{{ primary_sketch }}</pre>
+      {% else %}
+        <p class="text-muted">No sketch output available.</p>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Per-model PaperSketch markdown output -->
+  <div class="card mb-4">
+    <div class="card-header">
+      Per-Model Outputs
+    </div>
+    <div class="card-body">
+      {% for r in results %}
+        <details class="mb-3">
+          <summary class="fw-semibold">
+            {{ r.model }}
+            {% if r.status == "OK" %}
+              <span class="text-muted">(click to expand)</span>
+            {% else %}
+              <span class="text-danger">(error)</span>
+            {% endif %}
+          </summary>
+
+          <div class="mt-3">
+            {% if r.status == "OK" and r.paperSketch %}
+              <p class="mb-2 text-muted small">
+                Model: {{ r.modelInfo }}
+              </p>
+              {% if r.evaluation and r.evaluation.reference %}
+                <p class="mb-2 text-muted small">
+                  Reference metrics:
+                  R1 {{ r.evaluation.reference.rouge1_f1 }},
+                  R2 {{ r.evaluation.reference.rouge2_f1 }},
+                  RL {{ r.evaluation.reference.rougeL_f1 }},
+                  Token-F1 {{ r.evaluation.reference.token_f1 }}
+                </p>
+              {% endif %}
+              {% if r.evaluation and r.evaluation.judge %}
+                <p class="mb-2 text-muted small">
+                  Judge:
+                  factuality {{ r.evaluation.judge.factuality }},
+                  coverage {{ r.evaluation.judge.coverage }},
+                  clarity {{ r.evaluation.judge.clarity }},
+                  usefulness {{ r.evaluation.judge.usefulness }}
+                </p>
+                {% if r.evaluation.judge.reason %}
+                  <p class="mb-2 text-muted small">{{ r.evaluation.judge.reason }}</p>
+                {% endif %}
+              {% endif %}
+              <pre>{{ r.paperSketch }}</pre>
+            {% elif r.error %}
+              <div class="alert alert-danger mb-0">
+                {{ r.error }}
+              </div>
+            {% else %}
+              <p class="text-muted mb-0">No sketch output available.</p>
+            {% endif %}
+          </div>
+        </details>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Figure links -->
+  {% if shared and shared.figure_urls %}
+  <div class="card mb-4">
+    <div class="card-header">
+      Extracted Figure Images
+    </div>
+    <div class="card-body">
+      <div class="row">
+        {% for u in shared.figure_urls %}
+          <div class="col-md-4 mb-3">
+            <a href="{{ u }}" target="_blank" rel="noopener">
+              <img src="{{ u }}" class="img-fluid img-thumbnail">
+            </a>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+
+</body>
+</html>
